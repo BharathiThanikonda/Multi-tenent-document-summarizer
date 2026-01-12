@@ -1,38 +1,54 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
+interface Invoice {
+  id: string
+  date: string
+  amount: number
+  status: string
+  downloadUrl?: string
+}
+
 export function BillingHistory() {
-  const invoices = [
-    {
-      id: "INV-2025-001",
-      date: "Jan 15, 2025",
-      amount: 49.0,
-      status: "paid",
-      downloadUrl: "#",
-    },
-    {
-      id: "INV-2024-012",
-      date: "Dec 15, 2024",
-      amount: 49.0,
-      status: "paid",
-      downloadUrl: "#",
-    },
-    {
-      id: "INV-2024-011",
-      date: "Nov 15, 2024",
-      amount: 49.0,
-      status: "paid",
-      downloadUrl: "#",
-    },
-    {
-      id: "INV-2024-010",
-      date: "Oct 15, 2024",
-      amount: 19.0,
-      status: "paid",
-      downloadUrl: "#",
-    },
-  ]
+  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const token = localStorage.getItem("access_token")
+        if (!token) {
+          setLoading(false)
+          return
+        }
+
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+        const response = await fetch(`${apiUrl}/api/billing/invoices`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setInvoices(data)
+        } else {
+          setInvoices([])
+        }
+      } catch (error) {
+        console.error("Error fetching invoices:", error)
+        setInvoices([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchInvoices()
+  }, [])
 
   return (
     <Card className="p-6">
@@ -43,7 +59,16 @@ export function BillingHistory() {
         </div>
       </div>
 
-      <div className="space-y-3">
+      {loading ? (
+        <p className="text-muted-foreground">Loading invoices...</p>
+      ) : invoices.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No invoices yet</p>
+          <p className="text-sm text-muted-foreground mt-1">Your billing history will appear here</p>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-3">
         {invoices.map((invoice) => (
           <div
             key={invoice.id}
@@ -95,13 +120,15 @@ export function BillingHistory() {
             </div>
           </div>
         ))}
-      </div>
+          </div>
 
-      <div className="mt-4">
-        <Button variant="outline" className="w-full bg-transparent" size="sm">
-          View All Invoices
-        </Button>
-      </div>
+          <div className="mt-4">
+            <Button variant="outline" className="w-full bg-transparent" size="sm">
+              View All Invoices
+            </Button>
+          </div>
+        </>
+      )}
     </Card>
   )
 }

@@ -9,12 +9,13 @@ import Link from "next/link"
 
 interface Document {
   id: string
-  name: string
-  uploadedBy: string
-  uploadedAt: string
+  original_filename: string
+  filename: string
+  uploaded_by: string
+  created_at: string
   status: string
-  pages: number
-  size: string
+  page_count: number
+  file_size: number
 }
 
 export function DocumentLibrary() {
@@ -22,33 +23,83 @@ export function DocumentLibrary() {
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        const token = localStorage.getItem("access_token")
-        if (!token) {
-          setLoading(false)
-          return
-        }
-
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-        const response = await fetch(`${apiUrl}/api/documents/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          setDocuments(data)
-        }
-      } catch (error) {
-        console.error("Error fetching documents:", error)
-      } finally {
+  const fetchDocuments = async () => {
+    try {
+      const token = localStorage.getItem("access_token")
+      if (!token) {
         setLoading(false)
+        return
       }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      const response = await fetch(`${apiUrl}/api/documents/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setDocuments(data)
+      }
+    } catch (error) {
+      console.error("Error fetching documents:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (documentId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    
+    const confirmed = window.confirm("Are you sure you want to delete this document? This action cannot be undone.")
+    if (!confirmed) {
+      return
     }
 
+    try {
+      const token = localStorage.getItem("access_token")
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      
+      const response = await fetch(`${apiUrl}/api/documents/${documentId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        // Refresh the document list
+        await fetchDocuments()
+      } else {
+        const error = await response.json().catch(() => ({ detail: "Unknown error" }))
+        alert("Failed to delete document: " + (error.detail || "Unknown error"))
+      }
+    } catch (error) {
+      console.error("Error deleting document:", error)
+      alert("Failed to delete document. Please try again.")
+    }
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + " B"
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + " KB"
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB"
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  }
+
+  useEffect(() => {
     fetchDocuments()
   }, [])
 
@@ -150,7 +201,7 @@ export function DocumentLibrary() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium text-sm truncate">{doc.name}</h3>
+                      <h3 className="font-medium text-sm truncate">{doc.original_filename}</h3>
                       <Badge
                         variant={doc.status === "completed" ? "default" : "secondary"}
                         className="text-xs flex-shrink-0"
@@ -159,13 +210,11 @@ export function DocumentLibrary() {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span>{doc.uploadedBy}</span>
+                      <span>{formatDate(doc.created_at)}</span>
                       <span>•</span>
-                      <span>{doc.uploadedAt}</span>
+                      <span>{doc.page_count || 0} pages</span>
                       <span>•</span>
-                      <span>{doc.pages} pages</span>
-                      <span>•</span>
-                      <span>{doc.size}</span>
+                      <span>{formatFileSize(doc.file_size)}</span>
                     </div>
                   </div>
                 </div>
@@ -187,7 +236,16 @@ export function DocumentLibrary() {
                     <DropdownMenuItem>View Details</DropdownMenuItem>
                     <DropdownMenuItem>Download</DropdownMenuItem>
                     <DropdownMenuItem>Share</DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="text-destructive"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleDelete(doc.id)
+                      }}
+                    >
+                      Delete
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -220,13 +278,13 @@ export function DocumentLibrary() {
                     {doc.status}
                   </Badge>
                 </div>
-                <h3 className="font-medium text-sm truncate mb-1">{doc.name}</h3>
+                <h3 className="font-medium text-sm truncate mb-1">{doc.original_filename}</h3>
                 <p className="text-xs text-muted-foreground mb-3">
-                  {doc.uploadedBy} • {doc.uploadedAt}
+                  {formatDate(doc.created_at)}
                 </p>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{doc.pages} pages</span>
-                  <span>{doc.size}</span>
+                  <span>{doc.page_count || 0} pages</span>
+                  <span>{formatFileSize(doc.file_size)}</span>
                 </div>
               </Card>
             </Link>

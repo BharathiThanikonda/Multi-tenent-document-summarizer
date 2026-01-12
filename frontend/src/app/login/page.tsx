@@ -19,20 +19,6 @@ export default function LoginPage() {
             intelligent summaries in seconds.
           </p>
         </div>
-        <div className="flex gap-8 text-white/80 text-sm">
-          <div>
-            <div className="text-2xl font-bold text-white">10k+</div>
-            <div>Documents Processed</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-white">500+</div>
-            <div>Companies</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-white">99.9%</div>
-            <div>Uptime</div>
-          </div>
-        </div>
       </div>
 
       {/* Right side - Login Form */}

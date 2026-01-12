@@ -69,6 +69,38 @@ export default function DocumentDetailPage({
     return date.toLocaleDateString()
   }
 
+  const handleDownload = async () => {
+    if (!document) return
+    
+    try {
+      const token = localStorage.getItem("access_token")
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      
+      const response = await fetch(`${apiUrl}/api/documents/${id}/download`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const link = window.document.createElement("a")
+        link.href = url
+        link.download = document.original_filename
+        window.document.body.appendChild(link)
+        link.click()
+        window.document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+      } else {
+        alert("Failed to download document")
+      }
+    } catch (error) {
+      console.error("Download error:", error)
+      alert("Failed to download document")
+    }
+  }
+
   return (
     <div className="min-h-screen bg-muted/30">
       <DashboardHeader />
@@ -97,7 +129,7 @@ export default function DocumentDetailPage({
                     Uploaded {formatDate(document.created_at)} • {document.page_count || 0} pages • {formatFileSize(document.file_size)}
                   </p>
                 </div>
-                <Button variant="outline">
+                <Button variant="outline" onClick={handleDownload}>
                   <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"

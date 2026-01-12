@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 export function LoginForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -19,6 +20,7 @@ export function LoginForm() {
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -43,16 +45,13 @@ export function LoginForm() {
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("refresh_token", data.refresh_token);
         
-        console.log("Login successful");
         router.push("/dashboard");
       } else {
-        const error = await response.json();
-        console.error("Login failed:", error);
-        alert(error.detail || "Login failed. Please check your credentials.");
+        const errorData = await response.json().catch(() => ({ detail: "Login failed" }));
+        setError(errorData.detail || "Invalid email or password. Please try again.");
       }
-    } catch (error) {
-      console.error("Login error:", error);
-      alert("Failed to connect to server. Please try again.");
+    } catch (err) {
+      setError("Failed to connect to server. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -69,6 +68,13 @@ export function LoginForm() {
 
   return (
     <div className="space-y-6">
+      {/* Error Message */}
+      {error && (
+        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+          {error}
+        </div>
+      )}
+
       {/* OAuth Buttons */}
       <div className="space-y-3">
         <Button

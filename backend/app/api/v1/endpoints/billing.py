@@ -132,3 +132,48 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
         )
     
     return result
+
+
+@router.get("/invoices")
+async def get_invoices(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get billing invoices for the organization."""
+    organization = db.query(Organization).filter(
+        Organization.id == current_user.organization_id
+    ).first()
+    
+    if not organization:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization not found"
+        )
+    
+    # If no Stripe customer, return empty list
+    if not organization.stripe_customer_id:
+        return []
+    
+    try:
+        # Fetch invoices from Stripe
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        invoices = stripe.Invoice.list(
+            customer=organization.stripe_customer_id,
+            limit=10
+        )
+        
+        result = []
+        for invoice in invoices.data:
+            result.append({
+                "id": invoice.id,
+                "date": invoice.created,
+                "amount": invoice.amount_paid / 100,  # Convert cents to dollars
+                "status": invoice.status,
+                "downloadUrl": invoice.invoice_pdf if hasattr(invoice, 'invoice_pdf') else None
+            })
+        
+        return result
+    except Exception as e:
+        # If Stripe API fails, return empty list instead of error
+        print(f"Error fetching invoices: {e}")
+        return []

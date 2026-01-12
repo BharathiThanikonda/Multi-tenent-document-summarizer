@@ -1,6 +1,5 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 
 export function RecentDocuments() {
@@ -84,30 +83,18 @@ export function RecentDocuments() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-sm truncate">{doc.name}</h3>
-                    <Badge
-                      variant={
-                        doc.status === "completed" ? "default" : "secondary"
-                      }
-                      className="text-xs"
-                    >
-                      {doc.status}
-                    </Badge>
-                  </div>
+                  <h3 className="font-medium text-sm truncate">{doc.name}</h3>
                   <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
                     <span>{doc.uploadedBy}</span>
-                    <span>•</span>
-                    <span>{doc.uploadedAt}</span>
-                    <span>•</span>
-                    <span>{doc.pages} pages</span>
                   </div>
                 </div>
               </div>
 
-              <Button variant="ghost" size="sm" className="flex-shrink-0">
-                View
-              </Button>
+              <Link href={`/documents/${doc.id}`}>
+                <Button variant="ghost" size="sm" className="flex-shrink-0">
+                  View
+                </Button>
+              </Link>
             </div>
           ))
         )}
