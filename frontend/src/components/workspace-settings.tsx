@@ -23,6 +23,7 @@ interface Organization {
 }
 
 export function WorkspaceSettings() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
   const [workspaceName, setWorkspaceName] = useState("");
@@ -39,14 +40,11 @@ export function WorkspaceSettings() {
     const fetchOrganization = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await fetch(
-          "http://localhost:8000/api/organizations/",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch(`${apiUrl}/api/organizations/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (response.ok) {
           const data = await response.json();
           setOrganization(data);
@@ -72,7 +70,7 @@ export function WorkspaceSettings() {
   const handleSaveChanges = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch("http://localhost:8000/api/organizations/", {
+      const response = await fetch(`${apiUrl}/api/organizations/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -117,13 +115,13 @@ export function WorkspaceSettings() {
 
   const handleDeleteWorkspace = async () => {
     const confirmed = window.confirm(
-      "Are you absolutely sure you want to delete this workspace? This action cannot be undone and will permanently delete all documents, summaries, and team members."
+      "Are you absolutely sure you want to delete this workspace? This action cannot be undone and will permanently delete all documents, summaries, and team members.",
     );
 
     if (!confirmed) return;
 
     const doubleConfirm = window.prompt(
-      `Type "${workspaceName}" to confirm deletion:`
+      `Type "${workspaceName}" to confirm deletion:`,
     );
 
     if (doubleConfirm !== workspaceName) {
@@ -137,7 +135,7 @@ export function WorkspaceSettings() {
 
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch("http://localhost:8000/api/organizations/", {
+      const response = await fetch(`${apiUrl}/api/organizations/`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -226,10 +224,7 @@ export function WorkspaceSettings() {
                 Automatically generate AI summaries when documents are uploaded
               </p>
             </div>
-            <Switch 
-              checked={autoGenerate} 
-              onCheckedChange={setAutoGenerate}
-            />
+            <Switch checked={autoGenerate} onCheckedChange={setAutoGenerate} />
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
@@ -238,7 +233,7 @@ export function WorkspaceSettings() {
                 Notify team members when new documents are processed
               </p>
             </div>
-            <Switch 
+            <Switch
               checked={emailNotifications}
               onCheckedChange={setEmailNotifications}
             />
@@ -250,7 +245,7 @@ export function WorkspaceSettings() {
                 Admins must approve documents before processing
               </p>
             </div>
-            <Switch 
+            <Switch
               checked={requireApproval}
               onCheckedChange={setRequireApproval}
             />
@@ -272,7 +267,7 @@ export function WorkspaceSettings() {
                 Require 2FA for all team members
               </p>
             </div>
-            <Switch 
+            <Switch
               checked={twoFactorAuth}
               onCheckedChange={setTwoFactorAuth}
             />
@@ -284,7 +279,7 @@ export function WorkspaceSettings() {
                 Automatically delete documents after {retentionDays} days
               </p>
             </div>
-            <Switch 
+            <Switch
               checked={retentionDays > 0}
               onCheckedChange={(checked) => setRetentionDays(checked ? 90 : 0)}
             />
@@ -296,10 +291,7 @@ export function WorkspaceSettings() {
                 Allow members to export their data
               </p>
             </div>
-            <Switch 
-              checked={allowExport}
-              onCheckedChange={setAllowExport}
-            />
+            <Switch checked={allowExport} onCheckedChange={setAllowExport} />
           </div>
           <div className="pt-2">
             <Button onClick={handleSaveChanges}>Save Changes</Button>
@@ -321,8 +313,8 @@ export function WorkspaceSettings() {
                 action cannot be undone.
               </p>
             </div>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               className="flex-shrink-0"
               onClick={handleDeleteWorkspace}
             >

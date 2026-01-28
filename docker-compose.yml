@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: mtds-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-doc_summarizer}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    image: bharathithanikonda/mtds-backend:latest
+    container_name: mtds-backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    env_file:
+      - backend/.env
+    ports:
+      - "8000:8000"
+
+  frontend:
+    image: bharathithanikonda/mtds-frontend:latest
+    container_name: mtds-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    env_file:
+      - frontend/.env.local
+    ports:
+      - "3000:3000"
+
+volumes:
+  db_data:

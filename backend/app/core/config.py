@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3000"
     
     # CORS
-    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8000"
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8000,http://145.132.98.59:3000,http://145.132.98.59:8000"
     
     # File Upload
     MAX_FILE_SIZE_MB: int = 10

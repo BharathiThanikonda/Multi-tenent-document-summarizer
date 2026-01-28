@@ -1,58 +1,69 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card } from "@/components/ui/card"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 interface UsageData {
-  date: string
-  summaries: number
+  date: string;
+  summaries: number;
 }
 
 export function UsageChart() {
-  const [data, setData] = useState<UsageData[]>([])
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<UsageData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsageData = async () => {
       try {
-        const token = localStorage.getItem("access_token")
+        const token = localStorage.getItem("access_token");
         if (!token) {
-          setLoading(false)
-          return
+          setLoading(false);
+          return;
         }
 
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
         const response = await fetch(`${apiUrl}/api/analytics/usage-overtime`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        })
+        });
 
         if (response.ok) {
-          const usageData = await response.json()
-          setData(usageData)
+          const usageData = await response.json();
+          setData(usageData);
         } else {
           // If endpoint doesn't exist or returns error, show empty data
-          setData([])
+          setData([]);
         }
       } catch (error) {
-        console.error("Error fetching usage data:", error)
-        setData([])
+        console.error("Error fetching usage data:", error);
+        setData([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchUsageData()
-  }, [])
+    fetchUsageData();
+  }, []);
 
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-lg font-semibold">Usage Over Time</h2>
-          <p className="text-sm text-muted-foreground mt-1">Document summaries this month</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Document summaries this month
+          </p>
         </div>
       </div>
 
@@ -76,14 +87,23 @@ export function UsageChart() {
             />
           </svg>
           <p className="text-muted-foreground">No usage data available yet</p>
-          <p className="text-sm text-muted-foreground/70 mt-1">Start creating summaries to see your usage trends</p>
+          <p className="text-sm text-muted-foreground/70 mt-1">
+            Start creating summaries to see your usage trends
+          </p>
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="date" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-            <YAxis className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+            <XAxis
+              dataKey="date"
+              className="text-xs"
+              tick={{ fill: "hsl(var(--muted-foreground))" }}
+            />
+            <YAxis
+              className="text-xs"
+              tick={{ fill: "hsl(var(--muted-foreground))" }}
+            />
             <Tooltip
               contentStyle={{
                 backgroundColor: "hsl(var(--background))",
@@ -102,5 +122,5 @@ export function UsageChart() {
         </ResponsiveContainer>
       )}
     </Card>
-  )
+  );
 }

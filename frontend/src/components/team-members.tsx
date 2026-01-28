@@ -50,7 +50,7 @@ export function TeamMembers() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       if (response.ok) {
         const data = await response.json();
@@ -72,7 +72,7 @@ export function TeamMembers() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.ok) {
@@ -110,7 +110,7 @@ export function TeamMembers() {
             full_name: inviteName,
             role: inviteRole,
           }),
-        }
+        },
       );
 
       if (response.ok) {
@@ -120,11 +120,13 @@ export function TeamMembers() {
         setInviteEmail("");
         setInviteName("");
         setInviteRole("member");
-        
+
         // Show invitation link
         if (newMember.invitation_token) {
           const inviteUrl = `${window.location.origin}/accept-invitation?token=${newMember.invitation_token}`;
-          alert(`Team member invited successfully!\n\nShare this link with them:\n${inviteUrl}\n\nThey can use this to set their password and join the workspace.`);
+          alert(
+            `Team member invited successfully!\n\nShare this link with them:\n${inviteUrl}\n\nThey can use this to set their password and join the workspace.`,
+          );
         } else {
           alert("Team member added successfully!");
         }
@@ -152,7 +154,7 @@ export function TeamMembers() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ role: newRole }),
-        }
+        },
       );
 
       if (response.ok) {
@@ -170,7 +172,7 @@ export function TeamMembers() {
   const handleRemoveMember = async (userId: string, userName: string) => {
     if (
       !confirm(
-        `Are you sure you want to remove ${userName} from the workspace?`
+        `Are you sure you want to remove ${userName} from the workspace?`,
       )
     ) {
       return;
@@ -185,7 +187,7 @@ export function TeamMembers() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.ok) {
@@ -357,7 +359,10 @@ export function TeamMembers() {
                       </Badge>
                     )}
                     {member.is_pending_invitation && (
-                      <Badge variant="outline" className="text-xs text-yellow-600">
+                      <Badge
+                        variant="outline"
+                        className="text-xs text-yellow-600"
+                      >
                         Pending Invitation
                       </Badge>
                     )}
@@ -393,7 +398,7 @@ export function TeamMembers() {
                         onClick={() =>
                           handleRemoveMember(
                             member.id,
-                            member.full_name || member.email
+                            member.full_name || member.email,
                           )
                         }
                       >
